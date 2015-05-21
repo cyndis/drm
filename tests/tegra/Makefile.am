@@ -10,4 +10,5 @@ LDADD = \
 	../../libdrm.la
 
 noinst_PROGRAMS = \
-	openclose
+	openclose \
+	submit_vic
