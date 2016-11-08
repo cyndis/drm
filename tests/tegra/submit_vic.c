@@ -34,7 +34,7 @@
 #include <tegra_drm.h>
 
 #include "host1x.h"
-#include "vic.h"
+#include "vic04.h"
 #include "xf86drm.h"
 #include "tegra.h"
 
@@ -195,35 +195,32 @@ int main(int argc, char *argv[])
 	memset(histbuf, 0, 4096);
 
 	memset(config_struct, 0, sizeof(*config_struct));
-	config_struct->surfaceList0Struct.TargetRectRight = 199;
-	config_struct->surfaceList0Struct.TargetRectBottom = 31;
-	config_struct->blending0Struct.PixelFormat = 34; /* R8G8B8A8 */
-	config_struct->blending0Struct.BackgroundAlpha = 1023;
-	config_struct->blending0Struct.BackgroundR = 0;
-	config_struct->blending0Struct.BackgroundG = 1023;
-	config_struct->blending0Struct.BackgroundB = 0;
-	config_struct->blending0Struct.LumaWidth = 255;
-	config_struct->blending0Struct.LumaHeight = 31;
-	config_struct->blending0Struct.ChromaWidth = 16383;
-	config_struct->blending0Struct.ChromaHeight = 16383;
-	config_struct->blending0Struct.TargetRectRight = 199;
-	config_struct->blending0Struct.TargetRectBottom = 31;
-	config_struct->blending0Struct.SurfaceWidth = 199;
-	config_struct->blending0Struct.SurfaceHeight = 31;
-	config_struct->fetchControl0Struct.TargetRectRight = 199;
-	config_struct->fetchControl0Struct.TargetRectBottom = 31;
+	config_struct->outputConfig.TargetRectRight = 199;
+	config_struct->outputConfig.TargetRectBottom = 31;
+	config_struct->outputConfig.BackgroundAlpha = 1023;
+	config_struct->outputConfig.BackgroundR = 0;
+	config_struct->outputConfig.BackgroundG = 1023;
+	config_struct->outputConfig.BackgroundB = 0;
+
+    config_struct->outputSurfaceConfig.OutPixelFormat = 34; /* R8G8B8A8 */
+    config_struct->outputSurfaceConfig.OutSurfaceHeight = 31;
+    config_struct->outputSurfaceConfig.OutSurfaceWidth = 199;
+	config_struct->outputSurfaceConfig.OutLumaWidth = 255;
+	config_struct->outputSurfaceConfig.OutLumaHeight = 31;
+	config_struct->outputSurfaceConfig.OutChromaWidth = 16383;
+	config_struct->outputSurfaceConfig.OutChromaHeight = 16383;
 
 	i = 0;
 	cmdbuf[i++] = host1x_opcode_setclass(HOST1X_CLASS_VIC, 0, 0);
 
 	/* setup size of config_struct */
 	cmdbuf[i++] = host1x_opcode_incr(VIC_UCLASS_METHOD_OFFSET, 2);
-	cmdbuf[i++] = NVA0B6_VIDEO_COMPOSITOR_SET_CONTROL_PARAMS >> 2;
+	cmdbuf[i++] = NVB0B6_VIDEO_COMPOSITOR_SET_CONTROL_PARAMS >> 2;
 	cmdbuf[i++] = (sizeof(*config_struct) / 16) << 16;
 
 	/* set configuration buffer offset */
 	cmdbuf[i++] = host1x_opcode_incr(VIC_UCLASS_METHOD_OFFSET, 2);
-	cmdbuf[i++] = NVA0B6_VIDEO_COMPOSITOR_SET_CONFIG_STRUCT_OFFSET >> 2;
+	cmdbuf[i++] = NVB0B6_VIDEO_COMPOSITOR_SET_CONFIG_STRUCT_OFFSET >> 2;
 	submit_relocs[0].cmdbuf.handle = cmdbuf_bo_handle;
 	submit_relocs[0].cmdbuf.offset = i * 4;
 	submit_relocs[0].target.handle = configbuf_bo_handle;
@@ -234,7 +231,7 @@ int main(int argc, char *argv[])
 
 	/* set history buffer offset */
 	cmdbuf[i++] = host1x_opcode_incr(VIC_UCLASS_METHOD_OFFSET, 2);
-	cmdbuf[i++] = NVA0B6_VIDEO_COMPOSITOR_SET_HIST_OFFSET >> 2;
+	cmdbuf[i++] = NVB0B6_VIDEO_COMPOSITOR_SET_HIST_OFFSET >> 2;
 	submit_relocs[1].cmdbuf.handle = cmdbuf_bo_handle;
 	submit_relocs[1].cmdbuf.offset = i * 4;
 	submit_relocs[1].target.handle = histbuf_bo_handle;
@@ -245,7 +242,7 @@ int main(int argc, char *argv[])
 
 	/* set output buffer */
 	cmdbuf[i++] = host1x_opcode_incr(VIC_UCLASS_METHOD_OFFSET, 2);
-	cmdbuf[i++] = NVA0B6_VIDEO_COMPOSITOR_SET_OUTPUT_SURFACE_LUMA_OFFSET >> 2;
+	cmdbuf[i++] = NVB0B6_VIDEO_COMPOSITOR_SET_OUTPUT_SURFACE_LUMA_OFFSET >> 2;
 	submit_relocs[2].cmdbuf.handle = cmdbuf_bo_handle;
 	submit_relocs[2].cmdbuf.offset = i * 4;
 	submit_relocs[2].target.handle = outbuf_bo_handle;
@@ -256,7 +253,7 @@ int main(int argc, char *argv[])
 
 	/* execute */
 	cmdbuf[i++] = host1x_opcode_incr(VIC_UCLASS_METHOD_OFFSET, 2);
-	cmdbuf[i++] = NVA0B6_VIDEO_COMPOSITOR_EXECUTE >> 2;
+	cmdbuf[i++] = NVB0B6_VIDEO_COMPOSITOR_EXECUTE >> 2;
 	cmdbuf[i++] = 1 << 8;
 
 	/* increment syncpoint */
